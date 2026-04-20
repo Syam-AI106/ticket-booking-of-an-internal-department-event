@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Booking App | Login</title>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --text: #1e293b;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding-top: 50px;
+      margin: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    h1, h2 { text-align: center; margin-top: 0; }
+
+    input {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-sizing: border-box; /* Crucial for padding */
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: var(--primary-hover); }
+
+    .btn-secondary { background: #94a3b8; }
+    .btn-secondary:hover { background: #64748b; }
+
+    .error { color: #dc2626; background: #fef2f2; padding: 10px; border-radius: 8px; font-size: 14px; text-align: center; }
+    .success { color: #166534; background: #f0fdf4; padding: 15px; border-radius: 8px; white-space: pre-line; font-size: 14px; }
+    
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // --- Login Component ---
+    function LoginPage({ onLogin }) {
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [error, setError] = useState("");
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        // Simple demo credentials
+        if (email === "admin@fest.com" && password === "12345") {
+          onLogin(email);
+        } else {
+          setError("Invalid credentials. Try: admin@fest.com / 12345");
+        }
+      };
+
+      return (
+        <div className="card">
+          <h2>🔐 Login</h2>
+          <form onSubmit={handleLogin}>
+            <input 
+              type="email" 
+              placeholder="Email Address" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+            <button type="submit">Sign In</button>
+          </form>
+          {error && <p className="error">{error}</p>}
+        </div>
+      );
+    }
+
+    // --- Main Booking App Component ---
+    function App() {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [userEmail, setUserEmail] = useState("");
+      const [availableTickets, setAvailableTickets] = useState(50);
+
+      const event = {
+        name: "Tech Fest 2026",
+        department: "Computer Science",
+        date: "25 April 2026",
+        time: "10:00 AM",
+        venue: "Auditorium",
+        price: 100
+      };
+
+      const handleBooking = (count) => {
+        setAvailableTickets(prev => prev - count);
+      };
+
+      if (!isLoggedIn) {
+        return (
+          <div className="container">
+            <h1>Tech Fest Portal</h1>
+            <LoginPage onLogin={(email) => {
+              setUserEmail(email);
+              setIsLoggedIn(true);
+            }} />
+          </div>
+        );
+      }
+
+      return (
+        <div className="container">
+          <div className="navbar">
+            <span>Hi, <b>{userEmail.split('@')[0]}</b></span>
+            <button className="btn-secondary" style={{width: 'auto', padding: '5px 15px'}} onClick={() => setIsLoggedIn(false)}>Logout</button>
+          </div>
+          
+          <EventDetails event={event} availableTickets={availableTickets} />
+          <BookingForm 
+            event={event} 
+            availableTickets={availableTickets} 
+            onBook={handleBooking} 
+          />
+        </div>
+      );
+    }
+
+    function EventDetails({ event, availableTickets }) {
+      return (
+        <div className="card">
+          <h2>🎟 {event.name}</h2>
+          <p><b>Venue:</b> {event.venue}</p>
+          <p><b>Date:</b> {event.date} at {event.time}</p>
+          <p><b>Ticket Price:</b> ₹{event.price}</p>
+          <hr style={{border: '0', borderTop: '1px solid #eee'}} />
+          <p style={{fontSize: '18px'}}><b>Remaining:</b> {availableTickets} / 50</p>
+        </div>
+      );
+    }
+
+    function BookingForm({ event, availableTickets, onBook }) {
+      const [form, setForm] = useState({ name: "", tickets: "" });
+      const [status, setStatus] = useState({ type: "", msg: "" });
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const ticketCount = parseInt(form.tickets);
+
+        if (ticketCount <= 0 || isNaN(ticketCount)) {
+          setStatus({ type: "error", msg: "Please enter a valid ticket number." });
+          return;
+        }
+        if (ticketCount > availableTickets) {
+          setStatus({ type: "error", msg: "Sorry, not enough tickets available." });
+          return;
+        }
+
+        onBook(ticketCount);
+        setStatus({
+          type: "success",
+          msg: `Booking Confirmed!\nName: ${form.name}\nTickets: ${ticketCount}\nTotal Paid: ₹${ticketCount * event.price}`
+        });
+        setForm({ name: "", tickets: "" }); // Reset form
+      };
+
+      return (
+        <div className="card">
+          <h3>Reserve Your Spot</h3>
+          <form onSubmit={handleSubmit}>
+            <input 
+              type="text" 
+              placeholder="Attendee Name" 
+              value={form.name} 
+              onChange={(e) => setForm({...form, name: e.target.value})} 
+              required 
+            />
+            <input 
+              type="number" 
+              placeholder="Number of Tickets" 
+              value={form.tickets} 
+              onChange={(e) => setForm({...form, tickets: e.target.value})} 
+              required 
+            />
+            <button type="submit">Complete Booking</button>
+          </form>
+
+          {status.msg && (
+            <div style={{marginTop: '15px'}} className={status.type}>
+              {status.msg}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
